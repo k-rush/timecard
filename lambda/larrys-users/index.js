@@ -33,6 +33,8 @@ exports.handler = function(event, context, callback) {
 		case 'GET':
 			//Get user(s)
 
+			// If a username is provided, will get that particular user,  otherwise gets all users
+
 			//Waterfall
 			// set configuration
 
@@ -69,19 +71,18 @@ function setConfig(event, callback) {
 	var config = {};
 	var queryParams = {
 		Key: {
-			"stage": {S: event.stage}
+			"stage": event.requestContext.stage
 		},
 		TableName: "larrys-config"
 	};
 
 	dynamo.getItem(queryParams, function(err, data) {
-			if(err || data.Item.length === 0) {
-				console.log(err);
-				callback({code:'500', message:'Internal server error'}, data);
-			}
-			else {
-				console.log("Configutaion Item: " + data.Item);
-			}
+		if(err || data.Item.length === 0) {
+			console.log(err);
+			callback({code:'500', message:'Internal server error'}, data);
+		}
+		else {
+			console.log("Configutaion Item: " + data.Item);
 		}
 	});
 
