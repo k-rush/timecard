@@ -68,7 +68,6 @@ exports.handler = function(event, context, callback) {
 };
 
 function setConfig(event, callback) {
-	var config = {};
 	var queryParams = {
 		Key: {
 			"stage": event.requestContext.stage
@@ -82,7 +81,8 @@ function setConfig(event, callback) {
 			callback({code:'500', message:'Internal server error'}, data);
 		}
 		else {
-			console.log("Configutaion Item: " + data.Item);
+			console.log("Configutaion Item: " + JSON.stringify(data.Item));
+			//callback with data.Item as configuration item.
 		}
 	});
 
