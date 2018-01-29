@@ -153,6 +153,7 @@ function queryUserDB(body, configuration, callback) {
         else {
             console.log("QUERY RESULT:" + JSON.stringify(data.Items));
             if(data.Items.length === 0) {
+            	console.log("Username not found");
                 callback(null, body, configuration);
 
             }
