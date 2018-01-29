@@ -138,19 +138,27 @@ function sendVerificationEmail(to, subject, data) {
      });
 } 
 
+
 /** Validates all of the user registration fields */
-function validateFields(data) {
-    return (isString(data.username) && isString(data.firstname) && isString(data.lastname) && validateEmail(data.email) && validatePassword(data.password));                         
+function validateFields(body, configuration, callback) {
+    if(isString(body.username) && isString(body.firstname) && isString(body.lastname) && validator.isEmail(body.email) && validatePassword(body.password))
+        callback(null, body, configuration);
+    else callback({message: 'Invalid registration inputs', code:'400'});                         
 }
 
-/** Validates email address */
-function validateEmail(email) {  
-    return (isString(email) && /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email))  
-} 
+/** Sanitize inputs for html */
+function sanitizeFields(body, configuration, callback) {
+    body.username = validator.escape(validator.trim(body.username));
+    body.firstname = validator.escape(body.firstname);
+    body.lastname = validator.escape(body.lastname);
+    body.email = validator.normalizeEmail(validator.escape(body.email));
+    callback(null, body, configuration);
+}
+
 
 /** Validates password */
 function validatePassword(password) {
-    return (isString(password) && password.length > 6)
+    return (isString(password) && password.length > 5)
 }
 
 /** Tests typeof data is string */
