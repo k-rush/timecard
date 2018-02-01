@@ -111,7 +111,10 @@ function validatePostFields(body, configuration, callback) {
     	console.log("Inputs validated.");
         callback(null, body, configuration);
     }
-    else callback({message: 'Invalid registration inputs', code:'400'});                         
+    else {
+    	console.log('Invalid registration inputs');
+    	callback({message: 'Invalid registration inputs', code:'400'});
+    }                         
 }
 
 /** Sanitize inputs for html */
@@ -136,7 +139,7 @@ function isString(data) {
 
 function queryUserDB(body, configuration, callback) {
     var queryParams = {
-        TableName : configuration['user-table'],
+        TableName : configuration['usersTable'],
         KeyConditionExpression: "#s = :user",
         ExpressionAttributeNames:{
             "#s": "SearchField"
