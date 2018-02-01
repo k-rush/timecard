@@ -3,6 +3,7 @@ var crypto = require('crypto');
 var async = require('async');
 var AWS = require('aws-sdk');
 var validator = require('validator');
+const uuid = require('uuid/v1');
 const doc = require('dynamodb-doc');
 const dynamo = new doc.DynamoDB();
 
@@ -190,7 +191,7 @@ function putNewUser(body, configuration, hashedPass, salt, callback) {
     //console.log("Putting user into DB");
     var params = {
         TableName : configuration['usersTable'],
-        Item : {"username":body.username, "password":hashedPass, "salt":salt, "email":body.email, "firstname":body.firstname, "lastname":body.lastname, "verified":false, "searchField":body.username.toLowerCase()}
+        Item : {"UserId": uuid(), "username":body.username, "password":hashedPass, "salt":salt, "email":body.email, "firstname":body.firstname, "lastname":body.lastname, "verified":false, "searchField":body.username.toLowerCase()}
     };
     dynamo.putItem(params, function(err, data) {
         if(!err) {
