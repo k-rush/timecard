@@ -27,14 +27,17 @@ exports.handler = function(event, context, callback) {
 			// set configuration
 			// Validate
 			// Sanitize
-			//
+			// Query DB
+			// salt&hash
+			// put
 
 			async.waterfall([
 				async.apply(setConfig, event),
 				validatePostFields,
 				sanitizeFields,
 				queryUserDB,
-
+				saltAndHashPW,
+				putNewUser
 
 			]);
 			break;
@@ -140,9 +143,10 @@ function isString(data) {
 function queryUserDB(body, configuration, callback) {
     var queryParams = {
         TableName : configuration['usersTable'],
+        IndexName : configuration['usersIndex'],
         KeyConditionExpression: "#s = :user",
         ExpressionAttributeNames:{
-            "#s": "SearchField"
+            "#s": "searchField"
         },
         ExpressionAttributeValues: {
             ":user":body.username.toLowerCase()
