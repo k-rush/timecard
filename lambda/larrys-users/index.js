@@ -31,7 +31,7 @@ exports.handler = function(event, context, callback) {
 
 			async.waterfall([
 				async.apply(setConfig, event),
-				validateFields,
+				validatePostFields,
 				sanitizeFields,
 				queryUserDB,
 
@@ -96,7 +96,7 @@ function setConfig(event, callback) {
 		}
 		else {
 			console.log("Configutaion Item: " + JSON.stringify(data.Item));
-			callback(body, data.Item);
+			callback(null, body, data.Item);
 		}
 	});
 
@@ -105,9 +105,12 @@ function setConfig(event, callback) {
 
 
 /** Validates all of the user registration fields */
-function validateFields(body, configuration, callback) {
-    if(isString(body.username) && isString(body.firstname) && isString(body.lastname) && validator.isEmail(body.email) && validatePassword(body.password))
+function validatePostFields(body, configuration, callback) {
+	console.log('validating fields');
+    if(isString(body.username) && isString(body.firstname) && isString(body.lastname) && validator.isEmail(body.email) && validatePassword(body.password)) {
+    	console.log("Inputs validated.");
         callback(null, body, configuration);
+    }
     else callback({message: 'Invalid registration inputs', code:'400'});                         
 }
 
