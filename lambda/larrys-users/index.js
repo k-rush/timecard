@@ -39,8 +39,9 @@ exports.handler = function(event, context, callback) {
 				queryUserDB,
 				saltAndHashPW,
 				putNewUser
+				],
+				done);
 
-			]);
 			break;
 		case 'GET':
 			//Get user(s)
@@ -51,9 +52,10 @@ exports.handler = function(event, context, callback) {
 			// set configuration
 
 			async.waterfall([
-				async.apply(setConfig, event)
-
-			]);
+				async.apply(setConfig, event),
+				queryUserDB
+				],
+				done);
 			break;
 		case 'UPDATE':
 			//Update user
@@ -174,6 +176,8 @@ function queryUserDB(body, configuration, callback) {
 
         else {
             console.log("QUERY RESULT:" + JSON.stringify(data.Items));
+
+            // CAN WE USE FUNCTION POINTERS HERE?
             if(data.Items.length === 0) {
             	console.log("Username not found");
             	switch(configuration.httpMethod) {
