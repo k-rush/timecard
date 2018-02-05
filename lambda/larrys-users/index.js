@@ -50,10 +50,14 @@ exports.handler = function(event, context, callback) {
 
 			//Waterfall
 			// set configuration
+			var queryFunction = null;
+			if(event.queryStringParameters.username)
+				queryFunction = queryUserDB;
+			else queryFunction = scanUserDB;
 
 			async.waterfall([
 				async.apply(setConfig, event),
-				queryUserDB
+				queryFunction
 				],
 				done);
 			break;
@@ -154,10 +158,31 @@ function isString(data) {
     return (typeof data === 'string');
 }
 
+function scanUserDB(body, configuration, callback) {
+	var queryParams = {
+		TableName : configuration.usersTable
+	}
+
+	dynamo.scan(queryParams, function(err, data) {
+		if(err) {
+			callback({message:'Unable to retrieve user data', code:'500'});
+		}
+		else {
+			data.Items.forEach(function(item) {
+				delete item.password;
+				delete item.salt;
+				delete item.searchField
+				delete item.UserId;
+			});
+			callback(null, data.Items);
+		}
+	});
+}
+
 function queryUserDB(body, configuration, callback) {
     var queryParams = {
-        TableName : configuration['usersTable'],
-        IndexName : configuration['usersIndex'],
+        TableName : configuration.usersTable,
+        IndexName : configuration.usersIndex,
         KeyConditionExpression: "#s = :user",
         ExpressionAttributeNames:{
             "#s": "searchField"
@@ -166,6 +191,9 @@ function queryUserDB(body, configuration, callback) {
             ":user":body.username.toLowerCase()
         }
     };
+	
+
+
 
     //Need query here, because we do not have UserID... How can we make this faster?
     dynamo.query(queryParams, function(err,data) {
@@ -197,8 +225,13 @@ function queryUserDB(body, configuration, callback) {
             			callback({message: 'Username already exists'});
             			break;
             		case 'GET':
-            			/*** TODO: Fill in callback here */
-            			//callback();
+            			data.Items.forEach(function(item) {
+            				delete item.password;
+            				delete item.salt;
+            				delete item.searchField
+            				delete item.UserId;
+            			});
+            			callback(null, data.Items);
             			break;
             		default:
             	}
