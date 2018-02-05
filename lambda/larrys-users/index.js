@@ -34,7 +34,7 @@ exports.handler = function(event, context, callback) {
 
 			async.waterfall([
 				async.apply(setConfig, event),
-				validatePostFields,
+				validateUserFields,
 				sanitizeFields,
 				queryUserDB,
 				saltAndHashPW,
@@ -82,9 +82,19 @@ exports.handler = function(event, context, callback) {
 
 function setConfig(event, callback) {
 	var body = {};
-	try {
-		body = JSON.parse(event.body);
-	} catch(e) { callback({message:"Could not parse input body"}); }
+	console.log(event.httpMethod);
+
+	// POST method has paramters in the http body, need to parse. Else are url encoded and parsed by API gateway
+	switch(event.httpMethod) {
+		case 'POST':
+			try {
+				body = JSON.parse(event.body);
+			} catch(e) { callback({message:"Could not parse input body"}); }
+			break;
+		default:
+			body = event.queryStringParameters;
+	}
+	
 
 	var queryParams = {
 		Key: {
@@ -100,6 +110,7 @@ function setConfig(event, callback) {
 		}
 		else {
 			console.log("Configutaion Item: " + JSON.stringify(data.Item));
+			data.Item.httpMethod = event.httpMethod;
 			callback(null, body, data.Item);
 		}
 	});
@@ -109,8 +120,8 @@ function setConfig(event, callback) {
 
 
 /** Validates all of the user registration fields */
-function validatePostFields(body, configuration, callback) {
-	console.log('validating fields');
+function validateUserFields(body, configuration, callback) {
+	console.log('validating fields: ' + JSON.stringify(body));
     if(isString(body.username) && isString(body.firstname) && isString(body.lastname) && validator.isEmail(body.email) && validatePassword(body.password)) {
     	console.log("Inputs validated.");
         callback(null, body, configuration);
@@ -165,11 +176,29 @@ function queryUserDB(body, configuration, callback) {
             console.log("QUERY RESULT:" + JSON.stringify(data.Items));
             if(data.Items.length === 0) {
             	console.log("Username not found");
-                callback(null, body, configuration);
+            	switch(configuration.httpMethod) {
+            		case 'POST':
+            			callback(null, body, configuration);
+            			break;
+            		case 'GET':
+            			callback({message: "Username not found", code:'400'});
+            			break;
+            		default:
+            	}
 
             }
             else {
-                callback({message: 'Username already exists'});
+            	switch(configuration.httpMethod) {
+            		case 'POST':
+            			callback({message: 'Username already exists'});
+            			break;
+            		case 'GET':
+            			/*** TODO: Fill in callback here */
+            			//callback();
+            			break;
+            		default:
+            	}
+                
             }
         }
     });
